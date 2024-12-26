@@ -3,7 +3,7 @@ kind: TestRun
 metadata:
   name: run-k6-with-realtime
 spec:
-  parallelism: 10
+  parallelism: 15
   cleanup: post
   script:
     configMap:
