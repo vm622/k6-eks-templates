@@ -3,7 +3,7 @@ kind: Job
 metadata:
   name: web-deployment
 spec:
-  activeDeadlineSeconds: 16200
+  activeDeadlineSeconds: 10800
   ttlSecondsAfterFinished: 60
   template:
     metadata:
