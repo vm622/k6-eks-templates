@@ -1,0 +1,28 @@
+apiVersion: k6.io/v1alpha1
+kind: TestRun
+metadata:
+  name: run-k6-with-realtime
+spec:
+  parallelism: 10
+  cleanup: post
+  script:
+    configMap:
+      name: scenarios-test
+      file: test.js
+  arguments: -o experimental-prometheus-rw
+  runner:
+    env:
+      - name: K6_PROMETHEUS_RW_SERVER_URL
+        value: "http://kube-prometheus-stack-prometheus.prometheus.svc.cluster.local:9090/api/v1/write"
+      - name: K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM
+        value: "true"
+      - name: K6_PROMETHEUS_RW_TREND_STATS
+        value: "p(95),p(99),min,max,med,avg"
+    nodeSelector:
+        node.k8s/role: "test-worker"
+    tolerations:
+      - key: "node.k8s/app-role"
+        operator: "Equal" 
+        value: "test-worker"
+        effect: "NoSchedule" 
+  

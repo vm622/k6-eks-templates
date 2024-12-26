@@ -1,0 +1,71 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: web-deployment
+spec:
+  activeDeadlineSeconds: 16200
+  ttlSecondsAfterFinished: 60
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: 851725263758.dkr.ecr.eu-central-1.amazonaws.com/web-app:latest
+          ports:
+          - name: web
+            containerPort: 33000
+          livenessProbe:
+            httpGet:
+              path: /health/liveness
+              port: 33000
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 33000
+          resources:
+            requests:
+              memory: "1000Mi"
+              cpu: "500m"
+            limits:
+              memory: "2000Mi"
+              cpu: "1000m"
+      restartPolicy: OnFailure
+      nodeSelector:
+        node.k8s/role: "web-server"
+      tolerations:
+        - key: "node.k8s/app-role"
+          operator: "Equal" 
+          value: "web-server"
+          effect: "NoSchedule" 
+  backoffLimit: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+  labels:
+    app: web
+spec:
+  selector:
+    app: web
+  ports:
+    - name: web-app-port
+      protocol: TCP
+      port: 8080
+      targetPort: 33000
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: web-servicemonitor
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: web
+  endpoints:
+  - port: web-app-port
+    interval: 5s
